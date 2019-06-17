@@ -1,0 +1,14 @@
+{
+  "name": "kcp-node",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "author": "himself65",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "node-gyp": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.8"
+  }
+}
