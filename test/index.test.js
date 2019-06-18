@@ -1,4 +1,4 @@
-const kcp_node = require('../build/Release/kcp')
+const kcp_node = require('../src')
 
 describe('kcp-node base unit test', () => {
 	it('should have exports', () => {

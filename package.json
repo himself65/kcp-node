@@ -2,7 +2,14 @@
   "name": "kcp-node",
   "version": "0.1.0",
   "main": "src/index.js",
-  "author": "himself65",
+  "author": {
+    "name": "himself65",
+    "email": "himself65@outlook.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Himself65/kcp-node.git"
+  },
   "license": "MIT",
   "private": false,
   "scripts": {
