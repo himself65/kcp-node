@@ -2,3 +2,5 @@ node_modules
 .idea
 .vs
 build
+out
+cmake-build-debug

@@ -1,34 +1,50 @@
-#include <node.h>
+#define NAPI_VERSION 4
+#include <functional>
 #include <v8.h>
+#include <node_api.h>
+#include "kcp-node.h"
+#include "../deps/kcp/ikcp.h"
 
-void Method(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  v8::Isolate* isolate = args.GetIsolate();
-  args.GetReturnValue().Set(v8::String::NewFromUtf8(
-        isolate, "world", v8::NewStringType::kNormal).ToLocalChecked());
+#define ADD_FUNCITON(env, exports, name, function) \
+{ \
+	napi_status status; \
+	napi_value fn; \
+	status = napi_create_function((env), nullptr, 0, (function), nullptr, &fn); \
+	if (status != napi_ok) return nullptr; \
+	status = napi_set_named_property((env), (exports), (name), fn); \
+	if (status != napi_ok) return nullptr; \
 }
 
-// Not using the full NODE_MODULE_INIT() macro here because we want to test the
-// addon loader's reaction to the FakeInit() entry point below.
-extern "C" NODE_MODULE_EXPORT void
-NODE_MODULE_INITIALIZER(v8::Local<v8::Object> exports,
-                        v8::Local<v8::Value> module,
-                        v8::Local<v8::Context> context) {
-  NODE_SET_METHOD(exports, "hello", Method);
-}
+namespace kcp_node {
+	napi_value kcp_create(napi_env env, napi_callback_info info) {
+		size_t argc = 1;
+		napi_value args[2];
+		napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+		if (argc < 1) {
+			napi_throw_error(env, NULL, "must have one parameter at least.");
+		}
+		napi_valuetype valuetype;
+		napi_typeof(env, args[0], &valuetype);
+		if (valuetype != napi_number) {
+			napi_throw_type_error(env, NULL, "Wrong argument type on args[0]. number expected.");
+		}
+		std::function<void()> func;
+		napi_typeof(env, args[1], &valuetype);
+		if (valuetype == napi_function) {
+			func = [&]() {
+				napi_value global;
+				napi_value& cb = args[1];
+				napi_get_global(env, &global);
+				napi_call_function(env, global, cb, 0, NULL, NULL);
+			};
+		}
+		IUINT32 conv;
+		napi_get_value_uint32(env, args[0], &conv);
+		ikcpcb* val = ikcp_create(conv, func.target<void*>());
+	}
 
-static void FakeInit(v8::Local<v8::Object> exports,
-                     v8::Local<v8::Value> module,
-                     v8::Local<v8::Context> context) {
-  auto isolate = context->GetIsolate();
-  auto exception = v8::Exception::Error(v8::String::NewFromUtf8(isolate,
-      "FakeInit should never run!", v8::NewStringType::kNormal)
-          .ToLocalChecked());
-  isolate->ThrowException(exception);
+	napi_value init(napi_env env, napi_value exports) {
+		ADD_FUNCITON(env, exports, "create", kcp_create);
+		return exports;
+	}
 }
-
-// Define a Node.js module, but with the wrong version. Node.js should still be
-// able to load this module, multiple times even, because it exposes the
-// specially named initializer above.
-#undef NODE_MODULE_VERSION
-#define NODE_MODULE_VERSION 3
-NODE_MODULE(NODE_GYP_MODULE_NAME, FakeInit)
