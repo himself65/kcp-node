@@ -1,0 +1,32 @@
+language: node_js
+node_js:
+  - "12"
+  - "10"
+  - "8"
+cache:
+  yarn: true
+  directories:
+    - node_modules
+install:
+  - yarn --frozen-lockfile --non-interactive
+
+stages:
+  - name: commit-message
+    if: (type != push)
+  - name: test
+    if: (tag IS blank) OR (type != push) OR (repo != himself65/kcp-node)
+
+jobs:
+  include:
+    - stage: commit-message
+      name: 'Check Commit Message (only on pull request)'
+      script:
+        - commitlint-travis
+    - stage: test
+      name: 'Test'
+      before_script:
+        - yarn global add codecov
+      script:
+        - yarn run test:coverage
+      after_script:
+        - yarn run cov
