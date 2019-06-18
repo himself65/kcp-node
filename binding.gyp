@@ -3,7 +3,7 @@
     {
       "target_name": "kcp",
       "sources": [
-        "./deps/kcp/ikcp.c",
+        "./lib/kcp/ikcp.c",
         "./lib/kcp-node.cc"
       ]
     }

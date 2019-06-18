@@ -3,7 +3,7 @@
 #include <v8.h>
 #include <node_api.h>
 #include "kcp-node.h"
-#include "../deps/kcp/ikcp.h"
+#include "./kcp/ikcp.h"
 
 #define ADD_FUNCITON(env, exports, name, function) \
 { \
