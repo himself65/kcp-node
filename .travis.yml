@@ -28,6 +28,7 @@ jobs:
       name: 'Test'
       before_script:
         - yarn global add codecov
+        - node-gyp configure build
       script:
         - yarn run test:coverage
       after_script:
