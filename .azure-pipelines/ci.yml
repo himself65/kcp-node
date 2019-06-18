@@ -1,0 +1,45 @@
+trigger:
+  branches:
+    include:
+      - master
+      - dev
+
+jobs:
+  - job: macOS_CI_Tests
+    displayName: MacOS CI Tests
+    pool:
+      vmImage: xcode9-macos10.13
+    strategy:
+      matrix:
+        node_10_x:
+          node_version: 10.x
+    steps:
+      - script: npm install -g yarn
+      - template: ./test.yml
+
+
+  - job: ubuntu_CI_Tests
+    displayName: Ubuntu  CI Tests
+    pool:
+      vmImage: ubuntu-16.04
+    strategy:
+      matrix:
+        node_10_x:
+          node_version: 10.x
+
+    steps:
+      - script: sudo apt-get install g++ yarn
+      - template: ./test.yml
+
+  - job: windows_CI_Tests
+    displayName: Windows  CI Tests
+    pool:
+      vmImage: vs2017-win2016
+    strategy:
+      matrix:
+        node_10_x:
+          node_version: 10.x
+
+    steps:
+      - script: choco install mingw yarn
+      - template: ./test.yml
