@@ -13,8 +13,8 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "node-gyp rebuild",
-    "test": "yarn build && jest -i",
+    "build": "node-gyp configure build",
+    "test": "jest -i",
     "test:coverage": "yarn test --coverage"
   },
   "dependencies": {
