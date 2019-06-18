@@ -1,20 +1,23 @@
 const kcp_node = require('../src')
+const KCP = kcp_node.KCP
 
 describe('kcp-node base unit test', () => {
 	it('should have exports', () => {
-		expect(typeof kcp_node.create).toBe('function')
+		expect(typeof KCP).toBe('function')
 	})
 
-	it('should throw error when no parameter', () => {
-		expect(() => kcp_node.create()).toThrowError()
-		expect(() => kcp_node.create(null)).toThrowError()
-		expect(() => kcp_node.create(undefined)).toThrowError()
-		expect(() => kcp_node.create({})).toThrowError()
-		expect(() => kcp_node.create([])).toThrowError()
-		expect(() => kcp_node.create("")).toThrowError()
+	it('should throw error when incorrect parameter', () => {
+		expect(() => new KCP()).toThrowError()
+		expect(() => new KCP(undefined)).toThrowError()
+		expect(() => new KCP(null)).toThrowError()
+		expect(() => new KCP(true)).toThrowError()
+		expect(() => new KCP('')).toThrowError()
+		expect(() => new KCP([])).toThrowError()
+		expect(() => new KCP({})).toThrowError()
 	})
 
-	it('should function create returns an object', () => {
-		expect(typeof kcp_node.create(3000)).toBe('object')
+	it('should have correct properties', () => {
+		const kcp = new KCP(3000)
+		expect(typeof kcp).toBe('object')
 	})
 })

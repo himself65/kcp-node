@@ -1,88 +1,40 @@
 #include "kcp-node.h"
 
-#define ADD_FUNCITON(env, exports, name, function) \
+#define ASSERT_RUN_SUCCESS(command, code, message) \
+{ \
+	if ((command) != napi_ok) napi_throw_error(env, code, message); \
+}
+
+#define ADD_PROPERTY(env, object, name, value) \
+{ \
+	ASSERT_RUN_SUCCESS(napi_set_named_property((env), (object), (name), value), NULL, "Set property error"); \
+}
+
+#define ADD_FUNCITON(env, object, name, function) \
 { \
 	napi_status status; \
 	napi_value fn; \
-	status = napi_create_function((env), nullptr, 0, (function), nullptr, &fn); \
+	status = napi_create_function((env), NULL, NAPI_AUTO_LENGTH, (function), NULL, &fn); \
 	if (status != napi_ok) return NULL; \
-	status = napi_set_named_property((env), (exports), (name), fn); \
-	if (status != napi_ok) return NULL; \
-	return (exports); \
+	ADD_PROPERTY(env, object, name, fn); \
+	return (object); \
 }
 
 namespace kcp_node {
-//	KCPObject::~KCPObject()
-//	{
-//	}
-//	napi_value KCPObject::Init(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	void KCPObject::Release(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::SetOutput(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Output(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Recv(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Send(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Update(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Check(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Input(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Flush(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Peeksize(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Setmtu(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Wndsize(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Waitsnd(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Nodelay(napi_env, napi_callback_info)
-//	{
-//	}
-//
-//	napi_status KCPObject::Log(napi_env, napi_callback_info)
-//	{
-//	}
+	KCPObject::~KCPObject()
+	{
+		if (this->ikcpcb) {
+			ikcp_release(this->ikcpcb);
+			this->ikcpcb = NULL;
+		}
+	}
 
-	napi_value KCPCreate(napi_env env, napi_callback_info info) {
+	napi_value KCPObject::Init(napi_env env, napi_callback_info info)
+	{
 		size_t argc = 1;
 		napi_value args[2];
-		napi_get_cb_info(env, info, &argc, args, NULL, NULL);
+		napi_value thiz;
+		napi_get_cb_info(env, info, &argc, args, &thiz, NULL);
 		if (argc < 1) {
 			napi_throw_error(env, NULL, "must have one parameter at least.");
 		}
@@ -93,18 +45,19 @@ namespace kcp_node {
 		}
 		IUINT32 conv;
 		napi_get_value_uint32(env, args[0], &conv);
-		ikcpcb* ikcp = ikcp_create(conv, NULL);		// fixme: save value ikcp
-		napi_value obj;
-		napi_status status =napi_create_object(env, &obj);
+		KCPObject kcp_obj = KCPObject(ikcp_create(conv, thiz));
+		napi_status status = napi_wrap(env, thiz, &kcp_obj, NULL, NULL, NULL);
 		if (status != napi_ok) {
-			napi_throw_error(env, NULL, "Unexpected error.");
+			napi_throw_error(env, NULL, NULL);
 		}
-		// todo
-		return obj;
+
+		return NULL;
 	}
 
 	napi_value Init(napi_env env, napi_value exports) {
-		ADD_FUNCITON(env, exports, "create", KCPCreate);
+		napi_value obj;
+		napi_define_class(env, "kcp", NAPI_AUTO_LENGTH, KCPObject::Init, NULL, 0, NULL, &obj);
+		ASSERT_RUN_SUCCESS(napi_set_named_property(env, exports, "KCP", obj), NULL, NULL);
 		return exports;
 	}
 
