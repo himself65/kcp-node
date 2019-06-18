@@ -7,6 +7,8 @@ cache:
   yarn: true
   directories:
     - node_modules
+before_install:
+  - sudo apt-get install make g++ python2.7 python2.7-dev
 install:
   - yarn --frozen-lockfile --non-interactive
 
