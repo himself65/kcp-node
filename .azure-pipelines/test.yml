@@ -1,0 +1,13 @@
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: $(node_version)
+
+  - script: yarn global add codecov && yarn --frozen-lockfile --non-interactive
+    displayName: 'Install Dependency'
+
+  #  - script: yarn run tslint
+  #    displayName: 'Lint Code'
+
+  - script: yarn run test:coverage
+    displayName: 'Run Tests'
