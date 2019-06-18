@@ -5,11 +5,22 @@
   "author": "himself65",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "test": "yarn build && jest -i"
+  },
   "dependencies": {
     "node-gyp": "^5.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.15",
     "@types/node": "^12.0.8",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "jest": "^24.8.0",
     "node-addon-api": "^1.6.3"
   }
 }

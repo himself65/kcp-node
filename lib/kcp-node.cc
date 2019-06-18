@@ -10,9 +10,10 @@
 	napi_status status; \
 	napi_value fn; \
 	status = napi_create_function((env), nullptr, 0, (function), nullptr, &fn); \
-	if (status != napi_ok) return nullptr; \
+	if (status != napi_ok) throw "Create function failed."; \
 	status = napi_set_named_property((env), (exports), (name), fn); \
-	if (status != napi_ok) return nullptr; \
+	if (status != napi_ok) throw "Set property in exports failed"; \
+	return (exports); \
 }
 
 namespace kcp_node {
@@ -41,10 +42,14 @@ namespace kcp_node {
 		IUINT32 conv;
 		napi_get_value_uint32(env, args[0], &conv);
 		ikcpcb* val = ikcp_create(conv, func.target<void*>());
+		// todo
+		return NULL;
 	}
 
 	napi_value init(napi_env env, napi_value exports) {
 		ADD_FUNCITON(env, exports, "create", kcp_create);
 		return exports;
 	}
+
+	NAPI_MODULE(NODE_GYP_MODULE_NAME, init)
 }
