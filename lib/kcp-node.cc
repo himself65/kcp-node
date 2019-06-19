@@ -23,9 +23,9 @@
 namespace kcp_node {
 	KCPObject::~KCPObject()
 	{
-		if (this->ikcpcb) {
-			ikcp_release(this->ikcpcb);
-			this->ikcpcb = NULL;
+		if (this->cb) {
+			ikcp_release(this->cb);
+			this->cb = NULL;
 		}
 	}
 
