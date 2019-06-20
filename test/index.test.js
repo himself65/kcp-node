@@ -4,6 +4,7 @@ const KCP = kcp_node.KCP
 describe('kcp-node base unit test', () => {
 	it('should have exports', () => {
 		expect(typeof KCP).toBe('function')
+		expect(typeof new KCP(3000)).toBe('object')
 	})
 
 	it('should throw error when incorrect parameter', () => {

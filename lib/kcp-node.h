@@ -9,12 +9,18 @@ namespace kcp_node {
 	class KCPObject {
 	public:
 		static napi_value Init(napi_env, napi_callback_info);
+		static void Release(napi_env, void*, void*);
+		static napi_value SetOutput(napi_env, napi_callback_info);
+		static napi_value GetOutput(napi_env, napi_callback_info);
+		static void kcp_output(const char*, int, ikcpcb*, void*);
 
-		KCPObject(ikcpcb* cb) : cb(cb) { ; };
+		KCPObject(ikcpcb* kcpcb) : kcpcb(kcpcb) { ; };
 		~KCPObject();
+
+		napi_value cb;
 	private:
 		KCPObject() { ; };
-		ikcpcb* cb;
+		ikcpcb* kcpcb;
 	};
 	napi_value Init(napi_env, napi_callback_info);
 }
