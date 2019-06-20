@@ -9,6 +9,7 @@ namespace kcp_node {
 	class KCPObject {
 	public:
 		static napi_value Init(napi_env, napi_callback_info);
+
 		KCPObject(ikcpcb* cb) : cb(cb) { ; };
 		~KCPObject();
 	private:
