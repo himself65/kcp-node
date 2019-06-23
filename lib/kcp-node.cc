@@ -1,14 +1,8 @@
 #include "kcp-node.h"
 
-#define ASSERT_RUN_SUCCESS(command, code, message) \
-{ \
-	if ((command) != napi_ok) napi_throw_error(env, code, message); \
-}
+#define ASSERT_RUN_SUCCESS(command, code, message) if ((command) != napi_ok) napi_throw_error(env, code, message);
 
-#define ADD_PROPERTY(env, object, name, value) \
-{ \
-	ASSERT_RUN_SUCCESS(napi_set_named_property((env), (object), (name), value), nullptr, "Set property error"); \
-}
+#define ADD_PROPERTY(env, object, name, value) ASSERT_RUN_SUCCESS(napi_set_named_property((env), (object), (name), value), nullptr, "Set property error"); 
 
 #define ADD_FUNCITON(env, object, name, function) \
 { \
@@ -78,8 +72,8 @@ namespace kcp_node {
 		if (valuetype != napi_function) {
 			napi_throw_error(env, nullptr, "Wrong argument type on args[0], function expected.");
 		}
-		KCPObject* target = nullptr;
-		napi_unwrap(env, thiz, reinterpret_cast<void**>(target));
+		KCPObject* target;
+		napi_unwrap(env, thiz, reinterpret_cast<void**>(&target));
 		target->cb = args[0];
 		return nullptr;
 	}
@@ -87,11 +81,8 @@ namespace kcp_node {
 	napi_value KCPObject::GetOutput(napi_env env, napi_callback_info info) {
 		napi_value thiz;
 		napi_get_cb_info(env, info, nullptr, nullptr, &thiz, nullptr);
-		KCPObject* target = nullptr;
-		napi_unwrap(env, thiz, reinterpret_cast<void**>(target));
-		if (target == nullptr) {
-			napi_throw_error(env, nullptr, "Wrapped Value is nullptr, value expected");
-		}
+		KCPObject* target;
+		napi_unwrap(env, thiz, reinterpret_cast<void**>(&target));
 		return target->cb;
 	}
 
