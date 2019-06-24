@@ -11,7 +11,9 @@ jobs:
       vmImage: xcode9-macos10.13
     strategy:
       matrix:
-        node_10_x:
+        node_12_x:
+          node_version: 12.x
+        noee_10_x:
           node_version: 10.x
     steps:
       - script: npm install -g yarn
@@ -23,7 +25,9 @@ jobs:
       vmImage: ubuntu-16.04
     strategy:
       matrix:
-        node_10_x:
+        node_12_x:
+          node_version: 12.x
+        noee_10_x:
           node_version: 10.x
 
     steps:
@@ -36,7 +40,9 @@ jobs:
       vmImage: vs2017-win2016
     strategy:
       matrix:
-        node_10_x:
+        node_12_x:
+          node_version: 12.x
+        noee_10_x:
           node_version: 10.x
 
     steps:
