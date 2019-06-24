@@ -17,7 +17,7 @@ namespace kcp_node {
 		KCPObject(ikcpcb* kcpcb) : kcpcb(kcpcb) { ; };
 		~KCPObject();
 
-		napi_value cb;
+		napi_ref cb;
 	private:
 		KCPObject() { ; };
 		ikcpcb* kcpcb;
