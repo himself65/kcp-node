@@ -13,7 +13,7 @@ jobs:
       matrix:
         node_12_x:
           node_version: 12.x
-        noee_10_x:
+        node_10_x:
           node_version: 10.x
     steps:
       - script: npm install -g yarn
@@ -27,7 +27,7 @@ jobs:
       matrix:
         node_12_x:
           node_version: 12.x
-        noee_10_x:
+        node_10_x:
           node_version: 10.x
 
     steps:
@@ -42,7 +42,7 @@ jobs:
       matrix:
         node_12_x:
           node_version: 12.x
-        noee_10_x:
+        node_10_x:
           node_version: 10.x
 
     steps:
