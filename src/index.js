@@ -1,3 +1,15 @@
-const kcp = require('../build/Release/kcp')
+const inner = require('../build/Release/kcp')
 
-module.exports = kcp
+class KCP extends inner.KCP {
+  constructor (conv, conf) {
+    super(...arguments)
+    if (typeof conf !== 'object') return
+    const { address, port } = conf
+    // todo
+  }
+}
+
+module.exports = {
+  default: KCP,
+  KCP,
+}

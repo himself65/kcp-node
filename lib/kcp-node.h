@@ -12,6 +12,9 @@ namespace kcp_node {
 		static napi_value SetOutput(napi_env, napi_callback_info);
 		static napi_value GetOutput(napi_env, napi_callback_info);
 		static napi_value SetTimestamp(napi_env, napi_callback_info);
+		static napi_value SetWndSize(napi_env, napi_callback_info);
+		//static napi_value SetInput(napi_env, napi_callback_info);
+		//static napi_value SetLogger(napi_env, napi_callback_info);
 		static int kcp_output(const char*, int, ikcpcb*, void*);
 
 		KCPObject(ikcpcb* kcpcb) : kcpcb(kcpcb) { ; };

@@ -37,7 +37,6 @@ namespace kcp_node {
 		napi_typeof(env, args[0], &valuetype);
 		if (valuetype != napi_number) {
 			napi_throw_type_error(env, nullptr, "Wrong argument type on args[0]. number expected.");
-			// return to avoid crash
 			return nullptr;
 		}
 		IUINT32 conv;
@@ -51,7 +50,7 @@ namespace kcp_node {
 		napi_value func;
 		NAPI_OK(napi_create_function(env, "empty", NAPI_AUTO_LENGTH, Empty, nullptr, &func), nullptr, "Wrap C++ instance error.");
 		NAPI_OK(napi_create_reference(env, func, 1, &kcp_obj->cb), nullptr, "Create_reference error.");
-		return nullptr;
+		return thiz;
 	}
 
 	napi_value KCPObject::GetOutput(napi_env env, napi_callback_info info) {
@@ -92,7 +91,7 @@ namespace kcp_node {
 		napi_value thiz;
 		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
 		if (argc < 4) {
-			napi_throw_error(env, nullptr, "Must have one parameter at least.");
+			napi_throw_error(env, nullptr, "Must have four parameter at least.");
 			return nullptr;
 		}
 		int arguments[4];
@@ -100,8 +99,7 @@ namespace kcp_node {
 			napi_valuetype valuetype;
 			napi_typeof(env, args[i], &valuetype);
 			if (valuetype != napi_number) {
-
-				napi_throw_error(
+				napi_throw_type_error(
 					env,
 					nullptr,
 					"Wrong argument type on args, number expected."
@@ -112,20 +110,38 @@ namespace kcp_node {
 		}
 		KCPObject* target;
 		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
-		if (target == nullptr) {
-			napi_throw_error(env, nullptr, "Unexpected error, target is nullptr.");
+		napi_value res;
+		napi_get_boolean(
+			env,
+			ikcp_nodelay(target->kcpcb, arguments[0], arguments[1], arguments[2], arguments[3]),
+			&res);
+		return res;
+	}
+
+	napi_value KCPObject::SetWndSize(napi_env env, napi_callback_info info)
+	{
+		size_t argc = 2;
+		napi_value args[2];
+		napi_value thiz;
+		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
+		if (argc < 2) {
+			napi_throw_error(env, nullptr, "Must have two parameter at least.");
 			return nullptr;
 		}
+		for (int i = 0; i < 2; ++i) {
+			napi_valuetype valuetype;
+			napi_typeof(env, args[i], &valuetype);
+			if (valuetype != napi_number) {
+				napi_throw_type_error(env, nullptr, "Wrong argument type on args, number expected.");
+			}
+		}
+		KCPObject* target;
+		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
+		int sndwnd, rcvwnd;
+		NAPI_OK(napi_get_value_int32(env, args[0], &sndwnd), nullptr, "Get_value_int32 error.");
+		NAPI_OK(napi_get_value_int32(env, args[1], &rcvwnd), nullptr, "Get_value_int32 error.");
 		napi_value res;
-		NAPI_OK(
-			napi_get_boolean(
-				env,
-				ikcp_nodelay(target->kcpcb, arguments[0], arguments[1], arguments[2], arguments[3]),
-				&res
-			),
-			nullptr,
-			"Get_boolean error."
-		);
+		napi_get_boolean(env, ikcp_wndsize(target->kcpcb, sndwnd, rcvwnd), &res);
 		return res;
 	}
 
@@ -133,8 +149,11 @@ namespace kcp_node {
 		napi_value obj;
 		napi_property_descriptor desc[] = {
 			DECLARE_NAPI_GETTER_SETTER("output", KCPObject::GetOutput, KCPObject::SetOutput),
+			DECLARE_NAPI_PROPERTY("setTimestamp", KCPObject::SetTimestamp),
+			DECLARE_NAPI_PROPERTY("setWndSize", KCPObject::SetWndSize),
 		};
-		napi_define_class(env, "kcp", NAPI_AUTO_LENGTH, KCPObject::Init, nullptr, 1, desc, &obj);
+		napi_define_class(env, "KCP", NAPI_AUTO_LENGTH, KCPObject::Init, nullptr,
+			sizeof(desc) / sizeof(*desc), desc, &obj);
 		NAPI_OK(napi_set_named_property(env, exports, "KCP", obj), nullptr, nullptr);
 		return exports;
 	}
