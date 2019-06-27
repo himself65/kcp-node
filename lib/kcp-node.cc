@@ -1,25 +1,5 @@
 #include "kcp-node.h"
 
-#define ASSERT_RUN_SUCCESS(command, code, message) if ((command) != napi_ok) napi_throw_error(env, code, message);
-
-#define ADD_PROPERTY(env, object, name, value) ASSERT_RUN_SUCCESS(napi_set_named_property((env), (object), (name), value), nullptr, "Set property error"); 
-
-#define ADD_FUNCITON(env, object, name, function) \
-{ \
-	napi_status status; \
-	napi_value fn; \
-	status = napi_create_function((env), nullptr, NAPI_AUTO_LENGTH, (function), nullptr, &fn); \
-	if (status != napi_ok) return nullptr; \
-	ADD_PROPERTY(env, object, name, fn); \
-	return (object); \
-}
-
-#define DECLARE_NAPI_PROPERTY(name, func) \
-{ (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, nullptr }
-
-#define DECLARE_NAPI_GETTER_SETTER(name, getter, setter)				 \
-{ (name), nullptr, nullptr, (getter), (setter), nullptr, napi_default, nullptr }
-
 namespace kcp_node {
 	KCPObject::~KCPObject()
 	{
@@ -29,8 +9,10 @@ namespace kcp_node {
 		}
 	}
 
-	void KCPObject::kcp_output(const char* buf, int len, ikcpcb* kcp, void* user) {
+	int KCPObject::kcp_output(const char* buf, int len, ikcpcb* kcp, void* user) {
+		KCPObject* target = reinterpret_cast<KCPObject*>(&user);
 		// todo
+		return 0;
 	}
 
 	void KCPObject::Release(napi_env env, void* finalize_data, void* finalize_hint) {
@@ -46,7 +28,7 @@ namespace kcp_node {
 		size_t argc = 1;
 		napi_value args[2];
 		napi_value thiz;
-		ASSERT_RUN_SUCCESS(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info failed.");
+		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
 		if (argc < 1) {
 			napi_throw_error(env, nullptr, "Must have one parameter at least.");
 			return nullptr;
@@ -60,22 +42,25 @@ namespace kcp_node {
 		}
 		IUINT32 conv;
 		napi_get_value_uint32(env, args[0], &conv);
-		KCPObject* kcp_obj = new KCPObject(ikcp_create(conv, nullptr));
+		KCPObject* kcp_obj;
+		kcp_obj = new KCPObject(ikcp_create(conv, &kcp_obj));
+		kcp_obj->kcpcb->output = KCPObject::kcp_output;
+		kcp_obj->env = env;
 		// bind function
-		ASSERT_RUN_SUCCESS(napi_wrap(env, thiz, kcp_obj, KCPObject::Release, nullptr, nullptr), nullptr, "Wrap C++ instance failed.");
+		NAPI_OK(napi_wrap(env, thiz, kcp_obj, KCPObject::Release, nullptr, nullptr), nullptr, "Wrap C++ instance error.");
 		napi_value func;
-		ASSERT_RUN_SUCCESS(napi_create_function(env, "empty", NAPI_AUTO_LENGTH, Empty, nullptr, &func), nullptr, "Wrap C++ instance failed.");
-		ASSERT_RUN_SUCCESS(napi_create_reference(env, func, 1, &kcp_obj->cb), nullptr, "Create_reference error.");
+		NAPI_OK(napi_create_function(env, "empty", NAPI_AUTO_LENGTH, Empty, nullptr, &func), nullptr, "Wrap C++ instance error.");
+		NAPI_OK(napi_create_reference(env, func, 1, &kcp_obj->cb), nullptr, "Create_reference error.");
 		return nullptr;
 	}
 
 	napi_value KCPObject::GetOutput(napi_env env, napi_callback_info info) {
 		napi_value thiz;
-		ASSERT_RUN_SUCCESS(napi_get_cb_info(env, info, nullptr, nullptr, &thiz, nullptr), nullptr, "Get_cb_info failed.");
+		NAPI_OK(napi_get_cb_info(env, info, nullptr, nullptr, &thiz, nullptr), nullptr, "Get_cb_info error.");
 		KCPObject* target;
-		ASSERT_RUN_SUCCESS(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap failed.");
+		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
 		napi_value value;
-		ASSERT_RUN_SUCCESS(napi_get_reference_value(env, target->cb, &value), nullptr, "Get_reference_value error.");
+		NAPI_OK(napi_get_reference_value(env, target->cb, &value), nullptr, "Get_reference_value error.");
 		return value;
 	}
 
@@ -84,7 +69,7 @@ namespace kcp_node {
 		size_t argc = 1;
 		napi_value args[1];
 		napi_value thiz;
-		ASSERT_RUN_SUCCESS(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info failed.");
+		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
 		if (argc < 1) {
 			napi_throw_error(env, nullptr, "Must have one parameter at least.");
 			return nullptr;
@@ -96,9 +81,52 @@ namespace kcp_node {
 			return nullptr;
 		}
 		KCPObject* target;
-		ASSERT_RUN_SUCCESS(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap failed.");
-		ASSERT_RUN_SUCCESS(napi_create_reference(env, args[0], 1, &target->cb), nullptr, "Create_reference error.");
+		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
+		NAPI_OK(napi_create_reference(env, args[0], 1, &target->cb), nullptr, "Create_reference error.");
 		return args[0];
+	}
+
+	napi_value KCPObject::SetTimestamp(napi_env env, napi_callback_info info) {
+		size_t argc = 4;
+		napi_value args[4];
+		napi_value thiz;
+		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
+		if (argc < 4) {
+			napi_throw_error(env, nullptr, "Must have one parameter at least.");
+			return nullptr;
+		}
+		int arguments[4];
+		for (int i = 0; i < 4; ++i) {
+			napi_valuetype valuetype;
+			napi_typeof(env, args[i], &valuetype);
+			if (valuetype != napi_number) {
+
+				napi_throw_error(
+					env,
+					nullptr,
+					"Wrong argument type on args, number expected."
+				);
+				return nullptr;
+			}
+			napi_get_value_int32(env, args[i], arguments + i);
+		}
+		KCPObject* target;
+		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
+		if (target == nullptr) {
+			napi_throw_error(env, nullptr, "Unexpected error, target is nullptr.");
+			return nullptr;
+		}
+		napi_value res;
+		NAPI_OK(
+			napi_get_boolean(
+				env,
+				ikcp_nodelay(target->kcpcb, arguments[0], arguments[1], arguments[2], arguments[3]),
+				&res
+			),
+			nullptr,
+			"Get_boolean error."
+		);
+		return res;
 	}
 
 	napi_value Init(napi_env env, napi_value exports) {
@@ -107,7 +135,7 @@ namespace kcp_node {
 			DECLARE_NAPI_GETTER_SETTER("output", KCPObject::GetOutput, KCPObject::SetOutput),
 		};
 		napi_define_class(env, "kcp", NAPI_AUTO_LENGTH, KCPObject::Init, nullptr, 1, desc, &obj);
-		ASSERT_RUN_SUCCESS(napi_set_named_property(env, exports, "KCP", obj), nullptr, nullptr);
+		NAPI_OK(napi_set_named_property(env, exports, "KCP", obj), nullptr, nullptr);
 		return exports;
 	}
 
