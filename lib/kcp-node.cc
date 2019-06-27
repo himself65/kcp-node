@@ -133,6 +133,7 @@ namespace kcp_node {
 			napi_typeof(env, args[i], &valuetype);
 			if (valuetype != napi_number) {
 				napi_throw_type_error(env, nullptr, "Wrong argument type on args, number expected.");
+				return nullptr;
 			}
 		}
 		KCPObject* target;
