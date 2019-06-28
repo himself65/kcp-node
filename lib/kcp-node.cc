@@ -160,6 +160,7 @@ namespace kcp_node {
 		napi_typeof(env, args[0], &valuetype);
 		if (valuetype != napi_number) {
 			napi_throw_type_error(env, nullptr, "Wrong argument type on args[0], number expected.");
+			return nullptr;
 		}
 		KCPObject* target;
 		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
