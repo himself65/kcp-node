@@ -5,5 +5,7 @@ export class KCP {
 
   public setWndSize(sndwnd: number, rcvwnd: number): boolean
 
+  public setMaxMtu(maxMtu: number): boolean
+
   output: Function
 }
