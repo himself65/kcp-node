@@ -142,7 +142,31 @@ namespace kcp_node {
 		NAPI_OK(napi_get_value_int32(env, args[0], &sndwnd), nullptr, "Get_value_int32 error.");
 		NAPI_OK(napi_get_value_int32(env, args[1], &rcvwnd), nullptr, "Get_value_int32 error.");
 		napi_value res;
-		napi_get_boolean(env, ikcp_wndsize(target->kcpcb, sndwnd, rcvwnd), &res);
+		napi_get_boolean(env, (bool)ikcp_wndsize(target->kcpcb, sndwnd, rcvwnd), &res);
+		return res;
+	}
+
+	napi_value KCPObject::SetMaxMtu(napi_env env, napi_callback_info info)
+	{
+		size_t argc = 1;
+		napi_value args[1];
+		napi_value thiz;
+		NAPI_OK(napi_get_cb_info(env, info, &argc, args, &thiz, nullptr), nullptr, "Get_cb_info error.");
+		if (argc < 1) {
+			napi_throw_error(env, nullptr, "Must have two parameter at least.");
+			return nullptr;
+		}
+		napi_valuetype valuetype;
+		napi_typeof(env, args[0], &valuetype);
+		if (valuetype != napi_number) {
+			napi_throw_type_error(env, nullptr, "Wrong argument type on args[0], number expected.");
+		}
+		KCPObject* target;
+		NAPI_OK(napi_unwrap(env, thiz, reinterpret_cast<void**>(&target)), nullptr, "Unwrap error.");
+		int mtu;
+		napi_get_value_int32(env, args[0], &mtu);
+		napi_value res;
+		napi_get_boolean(env, !(bool)ikcp_setmtu(target->kcpcb, mtu), &res);
 		return res;
 	}
 
@@ -152,6 +176,7 @@ namespace kcp_node {
 			DECLARE_NAPI_GETTER_SETTER("output", KCPObject::GetOutput, KCPObject::SetOutput),
 			DECLARE_NAPI_PROPERTY("setTimestamp", KCPObject::SetTimestamp),
 			DECLARE_NAPI_PROPERTY("setWndSize", KCPObject::SetWndSize),
+			DECLARE_NAPI_PROPERTY("setMaxMtu", KCPObject::SetMaxMtu)
 		};
 		napi_define_class(env, "KCP", NAPI_AUTO_LENGTH, KCPObject::Init, nullptr,
 			sizeof(desc) / sizeof(*desc), desc, &obj);
