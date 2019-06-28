@@ -56,7 +56,8 @@ describe('kcp-node base unit test', () => {
     expect(() => kcp.setTimestamp(1)).toThrowError(ErrorMessage.length)
     expect(() => kcp.setTimestamp(1, 2)).toThrowError(ErrorMessage.length)
     expect(() => kcp.setTimestamp(1, 2, 3)).toThrowError(ErrorMessage.length)
-    expect(() => kcp.setTimestamp('','','','')).toThrowError(ErrorMessage.number)
+    expect(() => kcp.setTimestamp('', '', '', '')).
+      toThrowError(ErrorMessage.number)
   })
 
   it('function kcp.setTimestamp', () => {
@@ -72,11 +73,28 @@ describe('kcp-node base unit test', () => {
   it('function kcp.setWndSize', () => {
     expect(() => kcp.setWndSize()).toThrowError(ErrorMessage.length)
     expect(() => kcp.setWndSize(1)).toThrowError(ErrorMessage.length)
-    expect(() => kcp.setWndSize('','')).toThrowError(ErrorMessage.number)
+    expect(() => kcp.setWndSize('', '')).toThrowError(ErrorMessage.number)
   })
 
   it('function kcp.setWndSize', () => {
     expect(() => KCP.prototype.setWndSize.call(kcp, 1, 1)).not.toThrow()
     expect(() => kcp.setWndSize(1, 1)).not.toThrow()
+  })
+
+  it('function kcp.setMaxMtu', () => {
+    expect(typeof KCP.prototype.setMaxMtu).toBe('function')
+    expect(typeof kcp.setMaxMtu).toBe('function')
+  })
+
+  it('function kcp.setMaxMtu', () => {
+    expect(() => kcp.setMaxMtu()).toThrowError(ErrorMessage.length)
+    expect(() => kcp.setMaxMtu(null)).toThrowError(ErrorMessage.number)
+    expect(() => kcp.setMaxMtu('')).toThrowError(ErrorMessage.number)
+    expect(() => kcp.setMaxMtu({})).toThrowError(ErrorMessage.number)
+  })
+
+  it('function kcp.setMaxMtu', () => {
+    expect(() => KCP.prototype.setMaxMtu.call(kcp, 1)).not.toThrow()
+    expect(() => kcp.setMaxMtu(1)).not.toThrow()
   })
 })
